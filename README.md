@@ -19,7 +19,7 @@ No WhatsApp anywhere in this app.
   progress bar, and their own QR code.
 - **After login, no item selection:** the customer just taps one big button
   — **Request My Stamp** — under “Just bought something?”.
-- **Owner:** PIN-locked dashboard (you set your own PIN on first open).
+- **Owner:** PIN-locked dashboard. The PIN is set once by the owner in Supabase (see Step 4b) — no one can set it from the website itself.
   8 stats, Pending Approvals with **Accept / Decline + reason**, customer
   search by name / mobile / Member ID with filters, full customer history,
   Rewards with **Redeem** (resets the cycle to 0), Menu Management, QR
@@ -88,11 +88,27 @@ No WhatsApp anywhere in this app.
    `https://hygienic-cart-loyalty.vercel.app`
    **That is your live public link.** Open it on your phone and test it.
 
+### Step 4b — Set your owner PIN once (do this BEFORE giving the link to customers)
+
+**Important security rule:** no one can set the owner PIN from the website itself. If a customer opens Owner Section before you set a PIN, they will only see "Owner PIN is not set yet" — they cannot set it, and they cannot open the dashboard. You set it once, in Supabase:
+
+1. Choose a 4-digit PIN only you know. Remember it — you will need it every time you open Owner Section.
+2. In Supabase, go to **SQL Editor → New query**.
+3. Paste this, replacing `YOUR_HASH_HERE` with the hash for your PIN (ask Muse for the hash for your chosen PIN — the PIN itself is never stored, only its SHA-256 hash):
+   ```sql
+   update settings set pin_hash = 'YOUR_HASH_HERE' where id = 1;
+   ```
+4. Click **Run**. Wait for Success.
+5. Now open the website, go to **Owner Section**, enter your PIN — it must open. Try a wrong PIN — it must be rejected.
+6. To change your PIN later, open Owner Section with your current PIN, go to **Settings → Change Owner PIN**. No one can change it without knowing the current PIN.
+
+If you forget your PIN, you must set a new one again with the SQL above (step 3) — there is no "forgot PIN" on the website.
+
 ### Step 5 — Test the full journey (do this before giving it to customers)
 1. Open your live link. Register a test customer: name + your mobile.
    Check the Member ID is HC-0001 and the card shows 0/10.
 2. Tap **Request My Stamp**.
-3. Go to **Owner Section**, set your PIN (4+ digits, remember it).
+3. Go to **Owner Section**, enter the PIN you set in Step 4b.
 4. Open **Pending Approvals**, tap **ACCEPT PURCHASE**. The card should show 1/10.
 5. Repeat the request + accept 9 more times (or, to test quickly, use the
    same flow — each request needs a fresh tap after the last one is decided).
