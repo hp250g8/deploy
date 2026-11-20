@@ -100,8 +100,10 @@ export default function Home() {
   async function unlock(e: React.FormEvent) {
     e.preventDefault(); setPinMsg('');
     if (!s.settings.pin_hash) {
-      if (pin.length < 4) { setPinMsg('Choose a PIN of at least 4 digits.'); return; }
-      await store.setPin(pin); setUnlocked(true); setPin(''); setPinMsg('PIN set. Keep it safe — only you should know it.');
+      // SECURITY: no one can set the owner PIN from this public page.
+      // The owner sets it once, in Supabase (see README: "Set your owner PIN once").
+      setPinMsg('Owner PIN is not set yet. Only the owner can set it — see the setup guide. No one can set it from this page.');
+      return;
     } else if (await verifyPin(pin, s.settings.pin_hash)) {
       setUnlocked(true); setPin('');
     } else setPinMsg('Wrong PIN. Try again.');
@@ -214,11 +216,17 @@ export default function Home() {
             {!unlocked ? (
               <div className="card">
                 <h2>Owner Section — PIN Locked</h2>
-                <p>{s.settings.pin_hash ? 'Enter your owner PIN to open the dashboard.' : 'First time here? Set your owner PIN now. Only you should know it.'}</p>
-                <form onSubmit={unlock}>
-                  <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="Owner PIN (4+ digits)" inputMode="numeric" required />
-                  <button className="bigbtn" type="submit">{s.settings.pin_hash ? 'Unlock Dashboard' : 'Set My PIN'}</button>
-                </form>
+                {s.settings.pin_hash ? (
+                  <>
+                    <p>Enter your owner PIN to open the dashboard. Only the owner knows this PIN.</p>
+                    <form onSubmit={unlock}>
+                      <input type="password" value={pin} onChange={(e) => setPin(e.target.value)} placeholder="Owner PIN (4+ digits)" inputMode="numeric" required />
+                      <button className="bigbtn" type="submit">Unlock Dashboard</button>
+                    </form>
+                  </>
+                ) : (
+                  <p>Owner PIN is not set yet. Only the owner can set it — no one can set it from this page.</p>
+                )}
                 {pinMsg && <div className="notice green">{pinMsg}</div>}
               </div>
             ) : (
